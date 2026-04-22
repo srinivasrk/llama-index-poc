@@ -1,0 +1,270 @@
+/* ── MD3 Color Tokens (dark scheme, blue-indigo primary) ── */
+:root {
+  --md-primary:                  #A8C8FF;
+  --md-on-primary:               #003062;
+  --md-primary-container:        #004690;
+  --md-on-primary-container:     #D6E4FF;
+
+  --md-secondary:                #BBC7DB;
+  --md-on-secondary:             #253140;
+  --md-secondary-container:      #3B4858;
+  --md-on-secondary-container:   #D7E3F8;
+
+  --md-error:                    #FFB4AB;
+  --md-on-error:                 #690005;
+  --md-error-container:          #93000A;
+  --md-on-error-container:       #FFD9D5;
+
+  --md-background:               #1A1C1E;
+  --md-on-background:            #E2E2E6;
+
+  --md-surface:                  #1A1C1E;
+  --md-on-surface:               #E2E2E6;
+  --md-surface-container-lowest: #141618;
+  --md-surface-container-low:    #1E2022;
+  --md-surface-container:        #222528;
+  --md-surface-container-high:   #2C2F33;
+  --md-surface-container-highest:#363A3E;
+  --md-on-surface-variant:       #C2C7CF;
+
+  --md-outline:                  #8C9198;
+  --md-outline-variant:          #42474E;
+
+  /* Elevation */
+  --md-elev-1: 0 1px 2px rgba(0,0,0,.35), 0 1px 3px rgba(0,0,0,.25);
+  --md-elev-2: 0 2px 6px rgba(0,0,0,.35), 0 1px 4px rgba(0,0,0,.25);
+  --md-elev-3: 0 4px 12px rgba(0,0,0,.35), 0 2px 6px rgba(0,0,0,.25);
+
+  /* Type scale */
+  --type-display-small: clamp(24px, 3vw, 28px);
+  --type-title-large:   22px;
+  --type-body-medium:   14px;
+  --type-label-large:   14px;
+  --type-label-medium:  12px;
+  --type-label-small:   11px;
+}
+
+/* ── Reset & Base ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { font-size: 16px; -webkit-font-smoothing: antialiased; }
+
+body {
+  font-family: var(--font-sans, "Inter", system-ui, sans-serif);
+  font-size: var(--type-body-medium);
+  background: var(--md-background);
+  color: var(--md-on-surface);
+  min-height: 100dvh;
+  line-height: 1.5;
+}
+
+/* ── Layout ── */
+.app-shell {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 20px 48px;
+}
+
+/* ── Hero ── */
+.hero {
+  padding: 28px 28px 28px 32px;
+  margin-bottom: 20px;
+  background: var(--md-surface-container-low);
+  border-radius: 20px;
+  border: 1px solid var(--md-outline-variant);
+  box-shadow: var(--md-elev-1);
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 4px;
+  background: var(--md-primary);
+  border-radius: 4px 0 0 4px;
+}
+
+.hero-title {
+  font-size: var(--type-display-small);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  color: var(--md-on-surface);
+  margin-bottom: 6px;
+}
+
+.hero-subtitle {
+  font-size: var(--type-body-medium);
+  color: var(--md-on-surface-variant);
+  max-width: 580px;
+}
+
+/* ── Panel Grid ── */
+.panel-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+@media (max-width: 960px) {
+  .panel-grid { grid-template-columns: 1fr; }
+  .hero-title { font-size: 22px; }
+}
+
+/* ── Card ── */
+.card {
+  background: var(--md-surface-container-low);
+  border: 1px solid var(--md-outline-variant);
+  border-radius: 16px;
+  box-shadow: var(--md-elev-1);
+  padding: 20px;
+}
+
+.card-title {
+  font-size: var(--type-title-large);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--md-on-surface);
+  margin-bottom: 4px;
+}
+
+.card-subtitle {
+  font-size: var(--type-body-medium);
+  color: var(--md-on-surface-variant);
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+
+.card-subtitle code {
+  font-family: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
+  font-size: 12px;
+  background: var(--md-surface-container-high);
+  color: var(--md-primary);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+/* ── Input (MD3 outlined) ── */
+.input {
+  height: 44px;
+  width: 100%;
+  padding: 0 14px;
+  font-family: inherit;
+  font-size: var(--type-body-medium);
+  color: var(--md-on-surface);
+  background: var(--md-surface-container);
+  border: 1px solid var(--md-outline);
+  border-radius: 12px;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.input::placeholder { color: var(--md-on-surface-variant); }
+.input:hover { border-color: var(--md-on-surface-variant); }
+.input:focus {
+  border-color: var(--md-primary);
+  box-shadow: 0 0 0 2px rgba(168, 200, 255, 0.18);
+}
+
+/* ── Buttons (MD3) ── */
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 20px;
+  font-family: inherit;
+  font-size: var(--type-label-large);
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: var(--md-on-secondary-container);
+  background: var(--md-secondary-container);
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, box-shadow 0.15s, filter 0.15s;
+  position: relative;
+  overflow: hidden;
+}
+
+.button::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: currentColor;
+  opacity: 0;
+  transition: opacity 0.15s;
+  border-radius: inherit;
+}
+
+.button:hover::after  { opacity: 0.08; }
+.button:active::after { opacity: 0.14; }
+
+.button:disabled {
+  opacity: 0.38;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.button-primary {
+  background: var(--md-primary);
+  color: var(--md-on-primary);
+}
+
+.button-primary:hover { box-shadow: var(--md-elev-2); }
+
+/* ── Chip ── */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  height: 26px;
+  padding: 0 10px;
+  font-size: var(--type-label-small);
+  font-weight: 500;
+  color: var(--md-on-surface-variant);
+  background: var(--md-surface-container-high);
+  border: 1px solid var(--md-outline-variant);
+  border-radius: 8px;
+  white-space: nowrap;
+}
+
+.chip-primary {
+  color: var(--md-on-primary-container);
+  background: var(--md-primary-container);
+  border-color: transparent;
+}
+
+/* ── Soft box ── */
+.soft-box {
+  background: var(--md-surface-container-lowest);
+  border: 1px solid var(--md-outline-variant);
+  border-radius: 12px;
+}
+
+/* ── Mono ── */
+.mono {
+  font-family: "JetBrains Mono", "Fira Code", ui-monospace, SFMono-Regular, monospace;
+  font-size: 12px;
+}
+
+/* ── Footer ── */
+.footer-note {
+  text-align: center;
+  font-size: var(--type-label-medium);
+  color: var(--md-on-surface-variant);
+  margin-top: 28px;
+  opacity: 0.65;
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--md-outline-variant);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--md-outline); }
