@@ -11,6 +11,40 @@ export type IngestResponse = {
 export type ChatResponse = {
   answer: string;
   citations: Array<{ source: string; score: number; node_id: string }>;
+  graph_facts?: Array<{
+    fact: string;
+    uuid?: string | null;
+    valid_at?: string | null;
+    invalid_at?: string | null;
+  }>;
+};
+
+export type GraphNode = {
+  data: {
+    id: string;
+    label: string;
+    kind: "entity" | "episode";
+    summary?: string | null;
+    source?: string | null;
+  };
+};
+export type GraphEdge = {
+  data: {
+    id: string;
+    source: string;
+    target: string;
+    label: string;
+    kind: "relates_to" | "mentions";
+    fact?: string | null;
+    valid_at?: string | null;
+    invalid_at?: string | null;
+  };
+};
+export type GraphSnapshot = {
+  nodes: GraphNode[];
+  edges: GraphEdge[];
+  enabled: boolean;
+  error?: string;
 };
 
 export type UploadResponse = {
@@ -48,6 +82,23 @@ export async function listKbFiles(docsDir?: string): Promise<{ files: string[] }
   return await http(`/kb/files${qs}`);
 }
 
+export type KbDebugResponse = {
+  status: string;
+  docs_dir: string;
+  collection_name: string;
+  files_on_disk_count: number;
+  files_on_disk: string[];
+  vector_count?: number;
+  indexed_sources_count?: number;
+  indexed_sources?: string[];
+  vector_store_error?: string;
+};
+
+export async function getKbDebug(docsDir?: string): Promise<KbDebugResponse> {
+  const qs = docsDir ? `?docs_dir=${encodeURIComponent(docsDir)}` : "";
+  return await http(`/kb/debug${qs}`);
+}
+
 export async function ingest(docsDir?: string): Promise<IngestResponse> {
   return await http("/ingest", {
     method: "POST",
@@ -61,6 +112,13 @@ export async function chat(question: string, history?: string[]): Promise<ChatRe
     body: JSON.stringify({ question, history: history ?? [] })
   });
 }
+
+export async function getGraphSnapshot(): Promise<GraphSnapshot> {
+  return await http("/graph/snapshot");
+}
+
+/** Server-Sent Events URL for live graph change notifications. */
+export const GRAPH_STREAM_URL = `${BACKEND_URL}/graph/stream`;
 
 export async function uploadKbFiles(files: File[], docsDir?: string): Promise<UploadResponse> {
   const formData = new FormData();

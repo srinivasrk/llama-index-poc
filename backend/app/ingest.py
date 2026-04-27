@@ -212,3 +212,21 @@ def list_kb_files(docs_dir: str | None = None) -> Iterable[str]:
     if not base_dir.exists():
         return []
     return sorted(str(path.relative_to(base_dir)) for path in base_dir.rglob("*") if path.is_file())
+
+
+def iter_text_documents(docs_dir: str | None = None) -> list[tuple[str, str, str]]:
+    """Yield (name, text, path) tuples for all supported docs in `docs_dir`.
+
+    Used by the Graphiti integration after the standard ingest, so we don't
+    have to thread doc text through `build_or_update_index`'s return value.
+    """
+    base_dir = Path(docs_dir).resolve() if docs_dir else settings.docs_path
+    out: list[tuple[str, str, str]] = []
+    if not base_dir.exists():
+        return out
+    docs = _load_documents(base_dir)
+    for d in docs:
+        name = d.metadata.get("file_name") or d.metadata.get("file_path") or d.doc_id
+        path = d.metadata.get("file_path") or d.doc_id or ""
+        out.append((str(name), d.text or "", str(path)))
+    return out

@@ -12,3 +12,6 @@ pypdf
 pytest
 httpx
 python-multipart
+# --- Graphiti temporal knowledge graph ---
+graphiti-core[google-genai]
+sse-starlette

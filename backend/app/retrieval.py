@@ -12,8 +12,17 @@ from llama_index.vector_stores.chroma import ChromaVectorStore
 
 from app.config import settings
 from app.ingest import COLLECTION_NAME, get_chroma_client
+from app import graphiti_client
 
 logger = logging.getLogger("uvicorn.error")
+
+
+async def retrieve_facts(query: str) -> list[dict[str, Any]]:
+    """Return Graphiti edge-facts most relevant to `query`. Empty list if disabled."""
+    facts = await graphiti_client.search_facts(query)
+    if facts:
+        logger.info("Graphiti returned %d fact(s) for query", len(facts))
+    return facts
 
 
 def _configure_models() -> None:
