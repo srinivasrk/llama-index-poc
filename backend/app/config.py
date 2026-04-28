@@ -20,7 +20,14 @@ class Settings(BaseSettings):
     neo4j_uri: str = "bolt://localhost:7687"
     neo4j_user: str = "neo4j"
     neo4j_password: str = "graphiti_dev_password"
-    graphiti_group_id: str = "llama-index-poc"
+    # KB episodes (docs from /ingest) live in `graphiti_group_id` — this is what
+    # the Cytoscape snapshot renders. Chat episodes (per-turn Q/A) live in a
+    # separate `graphiti_chat_group_id` so they don't pollute the KB graph.
+    # `enable_chat_episodes` is the on/off switch for ingesting chat at all;
+    # default OFF, since most demos only want the KB graph visualised.
+    graphiti_group_id: str = "llama-index-poc-kb"
+    graphiti_chat_group_id: str = "llama-index-poc-chat"
+    enable_chat_episodes: bool = False
     graphiti_search_top_k: int = 6
     # Model names used by Graphiti's Gemini client. Note: google-genai (new SDK)
     # naming, NOT google-generativeai. Embedding model must support embedContent.

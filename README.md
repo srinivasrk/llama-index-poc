@@ -95,12 +95,33 @@ ENABLE_GRAPHITI=true
 NEO4J_URI=bolt://localhost:7687
 NEO4J_USER=neo4j
 NEO4J_PASSWORD=graphiti_dev_password
-GRAPHITI_GROUP_ID=llama-index-poc
+# KB episodes (from /ingest) — the only group rendered in the Cytoscape canvas.
+GRAPHITI_GROUP_ID=llama-index-poc-kb
+# Chat episodes live in their own group so they don't pollute the KB graph.
+GRAPHITI_CHAT_GROUP_ID=llama-index-poc-chat
+# Default OFF: chat turns are NOT pushed into Graphiti. Flip to true to enable
+# cross-session chat memory; chat nodes still won't appear in the canvas
+# because /graph/snapshot only queries GRAPHITI_GROUP_ID.
+ENABLE_CHAT_EPISODES=false
 ```
 
 ## Disabling Graphiti
 
 Set `ENABLE_GRAPHITI=false` in `backend/.env` (or just don't start Neo4j) and the app falls back to the original Chroma-only RAG flow. Graphiti calls become no-ops and the graph panel in the UI shows an "offline" badge — nothing else breaks.
+
+## KB graph vs chat memory
+
+Graphiti episodes are split across two `group_id`s so the KB graph stays clean:
+
+- **`GRAPHITI_GROUP_ID`** (default `llama-index-poc-kb`) — populated by `/ingest`. This is the only group rendered in `/graph/snapshot` and the Cytoscape canvas.
+- **`GRAPHITI_CHAT_GROUP_ID`** (default `llama-index-poc-chat`) — populated only when `ENABLE_CHAT_EPISODES=true`. Each chat turn becomes a `message` episode here.
+
+Default is `ENABLE_CHAT_EPISODES=false`, so chat turns are not pushed into Graphiti at all and the graph stays a pure document KB. Flip the flag on if you want cross-session chat memory; `search_facts` will then pull from both groups during answer grounding, but the canvas still only shows KB nodes because the snapshot query filters on `GRAPHITI_GROUP_ID`. To wipe chat memory without touching the KB:
+
+```powershell
+docker exec -it llama-index-poc-neo4j cypher-shell -u neo4j -p password `
+  "MATCH (n) WHERE n.group_id = 'llama-index-poc-chat' DETACH DELETE n"
+```
 
 ## API Endpoints
 
@@ -119,6 +140,34 @@ Set `ENABLE_GRAPHITI=false` in `backend/.env` (or just don't start Neo4j) and th
 - Chroma vectors: `backend/storage/chroma/`
 - LlamaIndex persisted state: `backend/storage/llamaindex_store/`
 - Graphiti graph: Neo4j (Docker volume `neo4j_data`)
+
+## Resetting state (clean re-index)
+
+To wipe both the vector index and the knowledge graph and start fresh:
+
+1. **Stop the backend** (Ctrl+C the uvicorn process) so nothing is holding files or writing to Neo4j.
+2. **Wipe LlamaIndex + Chroma** by deleting the persisted dirs. Removing `llamaindex_store/` is what forces `build_or_update_index` into the full-rebuild path; otherwise it tries an incremental refresh against a stale docstore.
+   ```powershell
+   Remove-Item -Recurse -Force .\backend\storage\chroma
+   Remove-Item -Recurse -Force .\backend\storage\llamaindex_store
+   ```
+3. **Wipe Neo4j** — pick one:
+   - *Full reset (drops the Docker volume):*
+     ```powershell
+     docker compose down -v
+     docker compose up -d neo4j
+     ```
+   - *Clear only this project's group (keeps other Graphiti groups in the same Neo4j):*
+     ```powershell
+     docker exec -it llama-index-poc-neo4j cypher-shell -u neo4j -p password `
+       "MATCH (n) WHERE n.group_id = 'llama-index-poc' DETACH DELETE n"
+     ```
+4. **Restart and re-ingest:**
+   ```powershell
+   uv run uvicorn app.main:app --reload --port 8000
+   curl -X POST http://localhost:8000/ingest -H "Content-Type: application/json" -d '{}'
+   ```
+5. **Verify:** `GET /kb/debug` should report a fresh `vector_count`; `GET /graph/snapshot` will grow over the next ~30s as Graphiti's background pass (bounded by `Semaphore(2)`) extracts entities from each episode via Gemini.
 
 ## Try the temporal-update demo
 

@@ -142,6 +142,11 @@ async def add_doc_episode(name: str, content: str, source_path: str) -> bool:
 
 
 async def add_chat_episode(question: str, answer: str, session_id: str = "default") -> bool:
+    # Skip entirely when chat-episode ingestion is disabled. This keeps the
+    # KB graph clean of Q/A noise while still allowing the user to flip the
+    # flag back on without code changes.
+    if not settings.enable_chat_episodes:
+        return False
     g = await get_graphiti()
     if g is None or EpisodeType is None:
         return False
@@ -153,7 +158,9 @@ async def add_chat_episode(question: str, answer: str, session_id: str = "defaul
             source=EpisodeType.message,
             source_description=f"chat session: {session_id}",
             reference_time=datetime.now(timezone.utc),
-            group_id=settings.graphiti_group_id,
+            # Separate group keeps chat nodes/edges out of the KB snapshot
+            # query, which filters on `graphiti_group_id`.
+            group_id=settings.graphiti_chat_group_id,
         )
         _broadcast({"type": "episode_added", "kind": "chat", "session_id": session_id})
         return True
@@ -189,10 +196,15 @@ async def search_facts(query: str) -> "list[dict[str, Any]]":
     g = await get_graphiti()
     if g is None:
         return []
+    # Always search the KB group; include the chat group only when chat
+    # episodes are being ingested (otherwise it's guaranteed empty).
+    group_ids = [settings.graphiti_group_id]
+    if settings.enable_chat_episodes:
+        group_ids.append(settings.graphiti_chat_group_id)
     try:
         results = await g.search(
             query=query,
-            group_ids=[settings.graphiti_group_id],
+            group_ids=group_ids,
             num_results=settings.graphiti_search_top_k,
         )
         out: "list[dict[str, Any]]" = []

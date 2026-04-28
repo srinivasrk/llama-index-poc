@@ -32,6 +32,11 @@ def _schedule_chat_episode(question: str, answer: str) -> None:
     """
     if not graphiti_client.is_enabled():
         return
+    # Avoid spawning a task when chat-episode ingestion is off. add_chat_episode
+    # would short-circuit anyway, but skipping the task creation keeps the
+    # _CHAT_BG_TASKS set quiet during shutdown drain.
+    if not settings.enable_chat_episodes:
+        return
     task = asyncio.create_task(graphiti_client.add_chat_episode(question, answer))
     _CHAT_BG_TASKS.add(task)
     task.add_done_callback(_CHAT_BG_TASKS.discard)
